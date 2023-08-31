@@ -52,6 +52,74 @@ function validate_order_form(selector) {
 }
 
 
+function add_order_note() {
+    var note = $('#note').val();
+    if (note == '') {
+        return;
+    }
+    var data = {};
+    data.content = note;
+    data.orderid = order_id;
+    console.log(data);
+    $('body').append('<div class="dt-loader"></div>');
+    $.post(admin_url + 'orders/add_order_note', data).done(function (response) {
+        response = JSON.parse(response);
+        $('body').find('.dt-loader').remove();
+        if (response.success == true) {
+            $('#note').val('');
+            get_order_notes();
+        }
+    });
+}
+
+function get_order_notes() {
+    if (typeof (order_id) == 'undefined') {
+        return;
+    }
+    requestGet('orders/get_order_notes/' + order_id).done(function (response) {
+        $('body').find('#order-notes').html(response);
+        update_notes_count('order')
+    });
+}
+
+function remove_order_note(noteid) {
+    if (confirm_delete()) {
+        requestGetJSON('orders/remove_note/' + noteid).done(function (response) {
+            if (response.success == true) {
+                $('[data-noteid="' + noteid + '"]').remove();
+                update_notes_count('order')
+            }
+        });
+    }
+}
+
+function edit_order_note(id) {
+    var content = $('body').find('[data-order-note-edit-textarea="' + id + '"] textarea').val();
+    if (content != '') {
+        $.post(admin_url + 'orders/edit_note/' + id, {
+            content: content
+        }).done(function (response) {
+            response = JSON.parse(response);
+            if (response.success == true) {
+                alert_float('success', response.message);
+                $('body').find('[data-order-note="' + id + '"]').html(nl2br(content));
+            }
+        });
+        toggle_order_note_edit(id);
+    }
+}
+
+
+function update_notes_count() {
+  var count = $(".note-item").length;
+  $(".total_notes").text(count);
+  if (count === 0) {
+    $(".total_notes").addClass("hide");
+  } else {
+    $(".total_notes").removeClass("hide");
+  }
+}
+
 // Get the preview main values
 function get_order_item_preview_values() {
     var response = {};

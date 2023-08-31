@@ -322,6 +322,22 @@ class Orders extends AdminController
         }
     }
 
+    public function add_order_note()
+    {
+        if ($this->input->post()) {
+            echo json_encode([
+                'success' => $this->orders_model->add_note($this->input->post()),
+            ]);
+        }
+    }
+
+
+    public function get_order_notes($id)
+    {
+        $data['notes'] = $this->orders_model->get_notes($id);
+        $this->load->view('admin/orders/notes_template', $data);
+    }
+    
     public function get_notes($id)
     {
         if (user_can_view_order($id)) {

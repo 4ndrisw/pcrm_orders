@@ -48,16 +48,16 @@
                             </a>
                         </li>
                         <li role="presentation" class="tab-separator">
-                            <a href="#tab_notes"
-                                onclick="get_sales_notes(<?php echo $order->id; ?>,'orders'); return false"
-                                aria-controls="tab_notes" role="tab" data-toggle="tab">
-                                <?php echo _l('order_notes'); ?>
-                                <span class="notes-total">
-                                    <?php if ($totalNotes > 0) { ?>
-                                    <span class="badge"><?php echo $totalNotes; ?></span>
-                                    <?php } ?>
-                                </span>
-                            </a>
+                          <a href="#tab_notes" onclick="get_order_notes(); return false;" aria-controls="tab_notes" role="tab" data-toggle="tab">
+                          <?php
+                          echo _l('order_notes');
+                          $total_notes = total_rows(db_prefix() . 'order_notes', [
+                              'orderid' => $order->id,
+                            ]
+                          );
+                          ?>
+                              <span class="badge total_notes <?php echo $total_notes === 0 ? 'hide' : ''; ?>"><?php echo $total_notes ?></span>
+                          </a>
                         </li>
                         <li role="presentation" data-toggle="tooltip" title="<?php echo _l('emails_tracking'); ?>"
                             class="tab-separator">
@@ -500,15 +500,18 @@
                   ?>
                 </div>
                 <div role="tabpanel" class="tab-pane" id="tab_notes">
-                    <?php echo form_open(admin_url('orders/add_note/' . $order->id), ['id' => 'sales-notes', 'class' => 'order-notes-form']); ?>
-                    <?php echo render_textarea('description'); ?>
-                    <div class="text-right">
-                        <button type="submit"
-                            class="btn btn-primary mtop15 mbot15"><?php echo _l('order_add_note'); ?></button>
-                    </div>
+
+
+                  <div class="row order-notes mtop15">
+                     <div class="col-md-12">
+                        <div class="clearfix"></div>
+                        <textarea name="content" id="note" rows="4" class="form-control mtop15 order-note"></textarea>
+                        <button type="button" class="btn btn-info mtop10 pull-right" onclick="add_order_note();"><?php echo _l('order_add_note'); ?></button>
+                     </div>
+                  </div>
                     <?php echo form_close(); ?>
                     <hr />
-                    <div class="mtop20" id="sales_notes_area">
+                    <div id="order-notes"></div>
                     </div>
                 </div>
                 <div role="tabpanel" class="tab-pane" id="tab_activity">
@@ -599,6 +602,8 @@ init_datepicker();
 init_selectpicker();
 init_form_reminder();
 init_tabs_scrollable();
+
+order_id = '<?php echo $order->id; ?>';
 <?php if ($send_later) { ?>
 schedule_order_send(<?php echo $order->id; ?>);
 <?php } ?>

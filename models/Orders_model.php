@@ -1418,4 +1418,135 @@ class Orders_model extends App_Model
 
         return $this->db->get(db_prefix() . 'orders')->result_array();
     }
+    /**
+     * Add order note
+     * @param mixed  $data   $_POST note data
+     * @param boolean $client is request coming from the client side
+     */
+    public function add_note($data, $client = false)
+    {
+        if (is_staff_logged_in()) {
+            $client = false;
+        }
+
+        if (isset($data['action'])) {
+            unset($data['action']);
+        }
+        $data['dateadded'] = date('Y-m-d H:i:s');
+        if ($client == false) {
+            $data['staffid'] = get_staff_user_id();
+        }
+        $data['content'] = nl2br($data['content']);
+        $this->db->insert(db_prefix() . 'order_notes', $data);
+        $insert_id = $this->db->insert_id();
+        if ($insert_id) {
+            $order = $this->get($data['orderid']);
+
+            log_activity(json_encode($order->status));
+
+            // No notifications client when order is with draft status
+            if ($order->status == '1' && $client == false) {
+                return true;
+            }
+
+            if ($client == true) {
+                // Get creator and assigned
+                $this->db->select('staffid,email,phonenumber');
+                $this->db->where('staffid', $order->addedfrom);
+                $this->db->or_where('staffid', $order->assigned);
+                $staff_order = $this->db->get(db_prefix() . 'staff')->result_array();
+                $notifiedUsers  = [];
+                foreach ($staff_order as $member) {
+                    $notified = add_notification([
+                        'description'     => 'not_order_note_from_client',
+                        'touserid'        => $member['staffid'],
+                        'fromcompany'     => 1,
+                        'fromuserid'      => 0,
+                        'link'            => 'orders/list_orders/' . $data['orderid'],
+                        'additional_data' => serialize([
+                            $order->subject,
+                        ]),
+                    ]);
+
+                    if ($notified) {
+                        array_push($notifiedUsers, $member['staffid']);
+                    }
+
+                    $template     = mail_template('order_note_to_staff', $order->id, $member['email']);
+                    $merge_fields = $template->get_merge_fields();
+                    $template->send();
+                    // Send email/sms to admin that client noteed
+                    $this->app_sms->trigger(SMS_TRIGGER_PROPOSAL_NEW_note_TO_STAFF, $member['phonenumber'], $merge_fields);
+                }
+                pusher_trigger_notification($notifiedUsers);
+            } else {
+                // Send email/sms to client that admin noteed
+                $template     = mail_template('order_note_to_customer', $order);
+                $merge_fields = $template->get_merge_fields();
+                $template->send();
+                $this->app_sms->trigger(SMS_TRIGGER_PROPOSAL_NEW_note_TO_CUSTOMER, $order->phone, $merge_fields);
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    public function edit_note($data, $id)
+    {
+        $this->db->where('id', $id);
+        $this->db->update(db_prefix() . 'order_notes', [
+            'content' => nl2br($data['content']),
+        ]);
+        if ($this->db->affected_rows() > 0) {
+            return true;
+        }
+
+        return false;
+    }
+    /**
+     * Get order notes
+     * @param  mixed $id order id
+     * @return array
+     */
+    public function get_notes($id)
+    {
+        $this->db->where('orderid', $id);
+        $this->db->order_by('dateadded', 'DESC');
+
+        return $this->db->get(db_prefix() . 'order_notes')->result_array();
+    }
+
+
+    /**
+     * Get order single note
+     * @param  mixed $id  note id
+     * @return object
+     */
+    public function get_note($id)
+    {
+        $this->db->where('id', $id);
+
+        return $this->db->get(db_prefix() . 'order_notes')->row();
+    }
+
+    /**
+     * Remove order note
+     * @param  mixed $id note id
+     * @return boolean
+     */
+    public function remove_note($id)
+    {
+        $note = $this->get_note($id);
+        $this->db->where('id', $id);
+        $this->db->delete(db_prefix() . 'order_notes');
+        if ($this->db->affected_rows() > 0) {
+            log_activity('Quotation note Removed [QuotationID:' . $note->orderid . ', note Content: ' . $note->content . ']');
+
+            return true;
+        }
+
+        return false;
+    }
 }
