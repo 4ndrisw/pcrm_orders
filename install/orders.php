@@ -1,0 +1,78 @@
+<?php defined('BASEPATH') or exit('No direct script access allowed');
+
+if (!$CI->db->table_exists(db_prefix() . 'orders')) {
+    $CI->db->query('CREATE TABLE `' . db_prefix() . "orders` (
+		  `id` int NOT NULL,
+		  `sent` tinyint(1) NOT NULL DEFAULT '0',
+		  `datesend` datetime DEFAULT NULL,
+		  `clientid` int NOT NULL,
+		  `deleted_customer_name` varchar(100) DEFAULT NULL,
+		  `number` int NOT NULL,
+		  `prefix` varchar(50) DEFAULT NULL,
+		  `number_format` int NOT NULL DEFAULT '0',
+		  `datecreated` datetime NOT NULL,
+		  `date` date NOT NULL,
+		  `duedate` date DEFAULT NULL,
+		  `expirydate` date DEFAULT NULL,
+		  `currency` int NOT NULL,
+		  `subtotal` decimal(15,2) NOT NULL,
+		  `reference_no` varchar(50) DEFAULT NULL,
+		  `total_tax` decimal(15,2) NOT NULL DEFAULT '0.00',
+		  `total` decimal(15,2) NOT NULL,
+		  `adjustment` decimal(15,2) DEFAULT NULL,
+		  `addedfrom` int DEFAULT NULL,
+		  `hash` varchar(32) NOT NULL,
+		  `status` int DEFAULT '1',
+		  `clientnote` text,
+		  `adminnote` text,
+		  `last_overdue_reminder` date DEFAULT NULL,
+		  `last_due_reminder` date DEFAULT NULL,
+		  `cancel_overdue_reminders` int NOT NULL DEFAULT '0',
+		  `allowed_payment_modes` mediumtext,
+		  `token` mediumtext,
+		  `discount_percent` decimal(15,2) DEFAULT '0.00',
+		  `discount_total` decimal(15,2) DEFAULT '0.00',
+		  `discount_type` varchar(30) NOT NULL,
+		  `recurring` int NOT NULL DEFAULT '0',
+		  `recurring_type` varchar(10) DEFAULT NULL,
+		  `custom_recurring` tinyint(1) NOT NULL DEFAULT '0',
+		  `cycles` int NOT NULL DEFAULT '0',
+		  `total_cycles` int NOT NULL DEFAULT '0',
+		  `is_recurring_from` int DEFAULT NULL,
+		  `last_recurring_date` date DEFAULT NULL,
+		  `terms` text,
+		  `sale_agent` int NOT NULL DEFAULT '0',
+		  `billing_street` varchar(200) DEFAULT NULL,
+		  `billing_city` varchar(100) DEFAULT NULL,
+		  `billing_state` varchar(100) DEFAULT NULL,
+		  `billing_zip` varchar(100) DEFAULT NULL,
+		  `billing_country` int DEFAULT NULL,
+		  `shipping_street` varchar(200) DEFAULT NULL,
+		  `shipping_city` varchar(100) DEFAULT NULL,
+		  `shipping_state` varchar(100) DEFAULT NULL,
+		  `shipping_zip` varchar(100) DEFAULT NULL,
+		  `shipping_country` int DEFAULT NULL,
+		  `include_shipping` tinyint(1) NOT NULL,
+		  `show_shipping_on_order` tinyint(1) NOT NULL DEFAULT '1',
+		  `show_quantity_as` int NOT NULL DEFAULT '1',
+		  `project_id` int DEFAULT '0',
+		  `invoiceid` int DEFAULT NULL,
+		  `subscription_id` int NOT NULL DEFAULT '0',
+		  `subscriber_id` int NOT NULL DEFAULT '0',
+		  `short_link` varchar(100) DEFAULT NULL
+    ) ENGINE=InnoDB DEFAULT CHARSET=" . $CI->db->char_set . ';');
+
+    $CI->db->query('ALTER TABLE `' . db_prefix() . 'orders`
+		  ADD PRIMARY KEY (`id`),
+		  ADD KEY `currency` (`currency`),
+		  ADD KEY `clientid` (`clientid`),
+		  ADD KEY `project_id` (`project_id`),
+		  ADD KEY `sale_agent` (`sale_agent`),
+		  ADD KEY `total` (`total`),
+		  ADD KEY `status` (`status`),
+		  ADD KEY `subscriber_id` (`subscriber_id`);
+    ');
+
+    $CI->db->query('ALTER TABLE `' . db_prefix() . 'orders`
+      MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1');
+}

@@ -1,0 +1,29 @@
+
+.schedule-update{ background-color:#ddd; }
+
+body #schedule-preview .schedule-items table tbody td.description span{
+    color: #d1d3ea !important;
+}
+
+.customers.viewschedule #wrapper{
+    margin-left: 0;
+}
+
+@media (max-width: 1430px){
+    .customers.viewschedule .panel_s {
+        width: 100%;
+    }
+}
+
+tr.has-row-options-2 a,
+tr.has-row-options-2,
+tr.schedule_status_2 {
+    background: #004803;
+}
+
+tr.has-row-options-1 a,
+tr.has-row-options-1,
+tr.schedule_status_1 {
+    background: #b7ab00;
+    color: #000;
+}
