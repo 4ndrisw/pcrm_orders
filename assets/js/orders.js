@@ -60,7 +60,6 @@ function add_order_note() {
     var data = {};
     data.content = note;
     data.orderid = order_id;
-    console.log(data);
     $('body').append('<div class="dt-loader"></div>');
     $.post(admin_url + 'orders/add_order_note', data).done(function (response) {
         response = JSON.parse(response);
