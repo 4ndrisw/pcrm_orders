@@ -187,6 +187,7 @@ $lang['order_table_rate_heading']     = 'Rate';
 $lang['order_table_amount_heading']   = 'Amount';
 
 $lang['create_new_order']                 = 'Create new order';
+$lang['invoice_order_activity_updated_item_short_description'] = 'updated item short description from %s to %s';
 
 
 /*

@@ -331,6 +331,15 @@ class Orders extends AdminController
         }
     }
 
+    public function edit_note($id)
+    {
+        if ($this->input->post()) {
+            echo json_encode([
+                'success' => $this->orders_model->edit_note($this->input->post(), $id),
+                'message' => _l('note_updated_successfully'),
+            ]);
+        }
+    }
 
     public function get_order_notes($id)
     {
@@ -343,6 +352,27 @@ class Orders extends AdminController
         if (user_can_view_order($id)) {
             $data['notes'] = $this->misc_model->get_notes($id, 'order');
             $this->load->view('admin/includes/sales_notes_template', $data);
+        }
+    }
+
+    public function remove_note($id)
+    {
+        $this->db->where('id', $id);
+        $note = $this->db->get(db_prefix() . 'order_notes')->row();
+        if ($note) {
+            if ($note->staffid != get_staff_user_id() && !is_admin()) {
+                echo json_encode([
+                    'success' => false,
+                ]);
+                die;
+            }
+            echo json_encode([
+                'success' => $this->orders_model->remove_note($id),
+            ]);
+        } else {
+            echo json_encode([
+                'success' => false,
+            ]);
         }
     }
 

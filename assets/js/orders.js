@@ -108,6 +108,12 @@ function edit_order_note(id) {
     }
 }
 
+function toggle_order_note_edit(id) {
+    $('body').find('[data-order-note="' + id + '"]').toggleClass('hide');
+    $('body').find('[data-order-note-edit-textarea="' + id + '"]').toggleClass('hide');
+}
+
+
 
 function update_notes_count() {
   var count = $(".note-item").length;

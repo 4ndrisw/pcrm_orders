@@ -500,8 +500,6 @@
                   ?>
                 </div>
                 <div role="tabpanel" class="tab-pane" id="tab_notes">
-
-
                   <div class="row order-notes mtop15">
                      <div class="col-md-12">
                         <div class="clearfix"></div>
@@ -512,7 +510,10 @@
                     <?php echo form_close(); ?>
                     <hr />
                     <div id="order-notes"></div>
-                    </div>
+                    
+
+
+
                 </div>
                 <div role="tabpanel" class="tab-pane" id="tab_activity">
                     <div class="row">
@@ -602,7 +603,6 @@ init_datepicker();
 init_selectpicker();
 init_form_reminder();
 init_tabs_scrollable();
-
 order_id = '<?php echo $order->id; ?>';
 <?php if ($send_later) { ?>
 schedule_order_send(<?php echo $order->id; ?>);
