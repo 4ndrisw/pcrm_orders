@@ -1442,8 +1442,6 @@ class Orders_model extends App_Model
         if ($insert_id) {
             $order = $this->get($data['orderid']);
 
-            log_activity(json_encode($order->status));
-
             // No notifications client when order is with draft status
             if ($order->status == '1' && $client == false) {
                 return true;
