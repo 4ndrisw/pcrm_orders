@@ -223,3 +223,16 @@ function reload_orders_tables() {
         }
     });
 }
+
+
+// From order table mark as
+function order_status_mark_as(status_id, order_id) {
+    var data = {};
+    data.status = status_id;
+    data.orderid = order_id;
+    $.post(admin_url + 'orders/update_order_status', data).done(function (response) {
+        //table_orders.DataTable().ajax.reload(null, false);
+        reload_orders_tables();
+    });
+    init_order(order_id);
+}

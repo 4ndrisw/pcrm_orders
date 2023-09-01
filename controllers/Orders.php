@@ -682,4 +682,12 @@ class Orders extends AdminController
             }
         }
     }
+        
+    /* Used in kanban when dragging and mark as */
+    public function update_order_status()
+    {
+        if ($this->input->post() && $this->input->is_ajax_request()) {
+            $this->orders_model->update_order_status($this->input->post());
+        }
+    }
 }

@@ -23,6 +23,7 @@ if (!$CI->db->table_exists(db_prefix() . 'orders')) {
 		  `addedfrom` int DEFAULT NULL,
 		  `hash` varchar(32) NOT NULL,
 		  `status` int DEFAULT '1',
+      `last_status_change` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 		  `clientnote` text,
 		  `adminnote` text,
 		  `last_overdue_reminder` date DEFAULT NULL,

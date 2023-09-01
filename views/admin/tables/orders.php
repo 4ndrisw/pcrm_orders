@@ -114,6 +114,7 @@ $result = data_tables_init($aColumns, $sIndexColumn, $sTable, $join, $where, [
     'project_id',
     'deleted_customer_name',
     'hash',
+    db_prefix() . 'orders.status',
 ]);
 
 $output  = $result['output'];
@@ -168,7 +169,50 @@ foreach ($rResult as $aRow) {
 
     $row[] = $aRow['reference_no'];
 
-    $row[] = format_order_status($aRow[db_prefix() . 'orders.status']);
+
+            $span = '';
+                //if (!$locked) {
+                    $span .= '<div class="dropdown inline-block mleft5 table-export-exclude">';
+                    $span .= '<a href="#" style="font-size:14px;vertical-align:middle;" class="dropdown-toggle text-dark" id="tableLeadsStatus-' . $aRow['id'] . '" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">';
+                    $span .= '<span data-toggle="tooltip" title="' . _l('ticket_single_change_status') . '"><i class="fa fa-caret-down" aria-hidden="true"></i></span>';
+                    $span .= '</a>';
+
+                    $span .= '<ul class="dropdown-menu dropdown-menu-right" aria-labelledby="tableLeadsStatus-' . $aRow['id'] . '">';
+                    foreach ($statuses as $orderChangeStatus) {
+                        if ($aRow['status'] != $orderChangeStatus) {
+                            $span .= '<li>
+                          <a href="#" onclick="order_mark_as(' . $orderChangeStatus . ',' . $aRow['id'] . '); return false;">
+                             ' . _l('order_mark_as',format_order_status($orderChangeStatus,'',false)) . '
+                          </a>
+                       </li>';
+                        }
+                    }
+                    $span .= '</ul>';
+                    $span .= '</div>';
+                //}
+                $span .= '</span>';
+/*
+            $outputStatus = '<span class="label label-danger inline-block">' . _l('order_status_draft') . $span;
+
+            if ($aRow['status'] == 1) {
+                $outputStatus = '<span class="label label-default inline-block">' . _l('order_status_draft') . $span;
+            } elseif ($aRow['status'] == 2) {
+                $outputStatus = '<span class="label label-danger inline-block">' . _l('order_status_declined') . $span;
+            } elseif ($aRow['status'] == 3) {
+                $outputStatus = '<span class="label label-success inline-block">' . _l('order_status_accepted') . $span;
+            } elseif ($aRow['status'] == 4) {
+                $outputStatus = '<span class="label label-info inline-block">' . _l('order_status_sent') . $span;
+            } elseif ($aRow['status'] == 5) {
+                $outputStatus = '<span class="label label-warning inline-block">' . _l('order_status_expired') . $span;
+            } elseif ($aRow['status'] == 6) {
+                $outputStatus = '<span class="label label-success inline-block">' . _l('order_status_approved') . '</span>';
+            }
+*/
+            $outputStatus = '<span>' . format_order_status($aRow['status'],'',true) . $span;
+
+    $row[] = $outputStatus;
+
+    //$row[] = format_order_status($aRow[db_prefix() . 'orders.status']);
 
     // Custom fields add values
     foreach ($customFieldsColumns as $customFieldColumn) {

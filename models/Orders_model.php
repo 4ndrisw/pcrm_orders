@@ -1547,4 +1547,66 @@ class Orders_model extends App_Model
 
         return false;
     }
+    
+    /**
+     * Update canban order status when drag and drop
+     * @param  array $data order data
+     * @return boolean
+     */
+    public function update_order_status($data)
+    {
+        $this->db->select('status');
+        $this->db->where('id', $data['orderid']);
+        $_old = $this->db->get(db_prefix() . 'orders')->row();
+
+        $old_status = '';
+
+        if ($_old) {
+            $old_status = format_order_status($_old->status);
+        }
+
+        $affectedRows   = 0;
+        $current_status = format_order_status($data['status']);
+
+
+        $this->db->where('id', $data['orderid']);
+        $this->db->update(db_prefix() . 'orders', [
+            'status' => $data['status'],
+        ]);
+
+        $_log_message = '';
+
+        if ($this->db->affected_rows() > 0) {
+            $affectedRows++;
+            if ($current_status != $old_status && $old_status != '') {
+                $_log_message    = 'not_order_activity_status_updated';
+                $additional_data = serialize([
+                    get_staff_full_name(),
+                    $old_status,
+                    $current_status,
+                ]);
+
+                hooks()->do_action('order_status_changed', [
+                    'order_id'    => $data['orderid'],
+                    'old_status' => $old_status,
+                    'new_status' => $current_status,
+                ]);
+            }
+            $this->db->where('id', $data['orderid']);
+            $this->db->update(db_prefix() . 'orders', [
+                'last_status_change' => date('Y-m-d H:i:s'),
+            ]);
+        }
+
+        if ($affectedRows > 0) {
+            if ($_log_message == '') {
+                return true;
+            }
+            $this->log_order_activity($data['orderid'], $_log_message, false, $additional_data);
+
+            return true;
+        }
+
+        return false;
+    }
 }

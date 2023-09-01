@@ -177,9 +177,8 @@
                              foreach ($order_statuses as $status) {
                                  if ($order->status != $status) { ?>
                                 <li>
-                                    <a
-                                        href="<?php echo admin_url() . 'orders/mark_action_status/' . $status . '/' . $order->id; ?>">
-                                        <?php echo _l('order_mark_as', format_order_status($status, '', false)); ?></a>
+                                  <a href="#" onclick="order_status_mark_as( <?php echo $status ?> , <?php echo $order->id; ?> ); return false;">
+                                   <?php echo _l('order_mark_as',format_order_status($status,'',false)); ?></a>
                                 </li>
                                 <?php }
                              } ?>
