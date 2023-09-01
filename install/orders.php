@@ -48,6 +48,8 @@ if (!$CI->db->table_exists(db_prefix() . 'orders')) {
 		  `billing_state` varchar(100) DEFAULT NULL,
 		  `billing_zip` varchar(100) DEFAULT NULL,
 		  `billing_country` int DEFAULT NULL,
+		  `phone` VARCHAR(10) NULL DEFAULT NULL,
+		  `email` VARCHAR(30) NULL DEFAULT NULL,
 		  `shipping_street` varchar(200) DEFAULT NULL,
 		  `shipping_city` varchar(100) DEFAULT NULL,
 		  `shipping_state` varchar(100) DEFAULT NULL,
@@ -60,7 +62,8 @@ if (!$CI->db->table_exists(db_prefix() . 'orders')) {
 		  `invoiceid` int DEFAULT NULL,
 		  `subscription_id` int NOT NULL DEFAULT '0',
 		  `subscriber_id` int NOT NULL DEFAULT '0',
-		  `short_link` varchar(100) DEFAULT NULL
+		  `short_link` varchar(100) DEFAULT NULL,
+		  `signed` TINYINT(1) NULL DEFAULT NULL
     ) ENGINE=InnoDB DEFAULT CHARSET=" . $CI->db->char_set . ';');
 
     $CI->db->query('ALTER TABLE `' . db_prefix() . 'orders`

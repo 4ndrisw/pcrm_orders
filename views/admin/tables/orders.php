@@ -182,7 +182,7 @@ foreach ($rResult as $aRow) {
                         if ($aRow['status'] != $orderChangeStatus) {
                             $span .= '<li>
                           <a href="#" onclick="order_mark_as(' . $orderChangeStatus . ',' . $aRow['id'] . '); return false;">
-                             ' . _l('order_mark_as',format_order_status($orderChangeStatus,'',false)) . '
+                             ' . _l('order_mark_as',format_order_status($orderChangeStatus,'',true)) . '
                           </a>
                        </li>';
                         }

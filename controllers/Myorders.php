@@ -2,7 +2,7 @@
 
 defined('BASEPATH') or exit('No direct script access allowed');
 
-class Order extends ClientsController
+class MyOrder extends ClientsController
 {
     public function index($id, $hash)
     {

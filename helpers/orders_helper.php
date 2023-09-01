@@ -40,7 +40,7 @@ function orders_notification()
 
 
 /**
- * Get Schedule short_url
+ * Get Order short_url
  * @since  Version 2.7.3
  * @param  object $order
  * @return string Url
@@ -122,7 +122,7 @@ function is_orders_email_expiry_reminder_enabled()
  */
 function is_orders_expiry_reminders_enabled()
 {
-    return is_orders_email_expiry_reminder_enabled() || is_sms_trigger_active(SMS_TRIGGER_SCHEDULE_EXP_REMINDER);
+    return is_orders_email_expiry_reminder_enabled() || is_sms_trigger_active(SMS_TRIGGER_ORDER_EXP_REMINDER);
 }
 
 /**
@@ -451,7 +451,7 @@ function user_can_view_order($id, $staff_id = false)
  */
 function order_pdf($order, $tag = '')
 {
-    return app_pdf('order',  module_libs_path(SCHEDULES_MODULE_NAME) . 'pdf/Schedule_pdf', $order, $tag);
+    return app_pdf('order',  module_libs_path(ORDERS_MODULE_NAME) . 'pdf/Order_pdf', $order, $tag);
 }
 
 
@@ -464,7 +464,7 @@ function order_pdf($order, $tag = '')
  */
 function order_office_pdf($order, $tag = '')
 {
-    return app_pdf('order',  module_libs_path(SCHEDULES_MODULE_NAME) . 'pdf/Schedule_office_pdf', $order, $tag);
+    return app_pdf('order',  module_libs_path(ORDERS_MODULE_NAME) . 'pdf/Order_office_pdf', $order, $tag);
 }
 
 
@@ -479,14 +479,14 @@ function order_office_pdf($order, $tag = '')
  */
 function get_order_items_table_data($transaction, $type, $for = 'html', $admin_preview = false)
 {
-    include_once(module_libs_path(SCHEDULES_MODULE_NAME) . 'Schedule_items_table.php');
+    include_once(module_libs_path(ORDERS_MODULE_NAME) . 'Order_items_table.php');
 
-    $class = new Schedule_items_table($transaction, $type, $for, $admin_preview);
+    $class = new Order_items_table($transaction, $type, $for, $admin_preview);
 
     $class = hooks()->apply_filters('items_table_class', $class, $transaction, $type, $for, $admin_preview);
 
     if (!$class instanceof App_items_table_template) {
-        show_error(get_class($class) . ' must be instance of "Schedule_items_template"');
+        show_error(get_class($class) . ' must be instance of "Order_items_template"');
     }
 
     return $class;
@@ -602,7 +602,7 @@ function order_mail_preview_data($template, $customer_id_or_email, $mailClassPar
 function get_order_upload_path($type=NULL)
 {
    $type = 'order';
-   $path = SCHEDULE_ATTACHMENTS_FOLDER;
+   $path = ORDER_ATTACHMENTS_FOLDER;
    
     return hooks()->apply_filters('get_upload_path_by_type', $path, $type);
 }
@@ -741,8 +741,8 @@ if ($CI->uri->segment(1)=='orders') {
  */
 function order_app_client_includes()
 {
-    echo '<link href="' . base_url('modules/' .SCHEDULES_MODULE_NAME. '/assets/css/orders.css') . '"  rel="stylesheet" type="text/css" >';
-    echo '<script src="' . module_dir_url('' .SCHEDULES_MODULE_NAME. '', 'assets/js/orders.js') . '"></script>';
+    echo '<link href="' . base_url('modules/' .ORDERS_MODULE_NAME. '/assets/css/orders.css') . '"  rel="stylesheet" type="text/css" >';
+    echo '<script src="' . module_dir_url('' .ORDERS_MODULE_NAME. '', 'assets/js/orders.js') . '"></script>';
 }
 
 
@@ -760,9 +760,9 @@ function after_order_updated($id){
  */
 function project_has_orders($project_id)
 {
-    $totalProjectsScheduled = total_rows(db_prefix() . 'orders', 'project_id=' . get_instance()->db->escape_str($project_id));
+    $totalProjectsOrderd = total_rows(db_prefix() . 'orders', 'project_id=' . get_instance()->db->escape_str($project_id));
 
-    return ($totalProjectsScheduled > 0 ? true : false);
+    return ($totalProjectsOrderd > 0 ? true : false);
 }
 
 
@@ -785,4 +785,106 @@ function get_order_item_taxes($itemid)
     }
 
     return $taxes;
+}
+
+
+/**
+ * Fetches custom pdf logo url for pdf or use the default logo uploaded for the iso
+ * Additional statements applied because this function wont work on all servers. All depends how the server is configured.
+ * @return string
+ */
+function pdf_right_logo_url()
+{
+    $custom_pdf_logo_image_url = get_option('custom_pdf_logo_image_url');
+    $width                     = get_option('pdf_logo_width');
+    $isoUploadPath         = 'uploads/iso' . '/';
+    $logoUrl                   = '';
+
+    if ($width == '') {
+        $width = 120;
+    }
+
+    if ($custom_pdf_logo_image_url != '') {
+        $logoUrl = $custom_pdf_logo_image_url;
+    } else {
+        if (get_option('iso_logo_dark') != '' && file_exists($isoUploadPath . get_option('iso_logo_dark'))) {
+            $logoUrl = $isoUploadPath . get_option('iso_logo_dark');
+        } elseif (get_option('iso_logo') != '' && file_exists($isoUploadPath . get_option('iso_logo'))) {
+            $logoUrl = $isoUploadPath . get_option('iso_logo');
+        }
+    }
+
+    $logoImage = '';
+
+    if ($logoUrl != '') {
+        $logoImage = '<img width="' . $width . 'px" src="' . $logoUrl . '">';
+    }
+
+    return hooks()->apply_filters('pdf_logo_url', $logoImage);
+}
+
+if (!function_exists('format_order_info')) {
+    /**
+     * Format order info format
+     * @param  object $order order from database
+     * @param  string $for      where this info will be used? Admin area, HTML preview?
+     * @return string
+     */
+    function format_order_info($order, $for = '')
+    {
+        $format = get_option('customer_info_format');
+
+        $countryCode = '';
+        $countryName = '';
+
+        if ($country = get_country($order->billing_country)) {
+            $countryCode = $country->iso2;
+            $countryName = $country->short_name;
+        }
+
+        $orderTo = '<b>' . get_company_name($order->clientid) . '</b>';
+        $phone      = $order->phone;
+        $email      = $order->email;
+
+        if ($for == 'admin') {
+            $hrefAttrs = '';
+            if ($order->rel_type == 'lead') {
+                $hrefAttrs = ' href="#" onclick="init_lead(' . $order->rel_id . '); return false;" data-toggle="tooltip" data-title="' . _l('lead') . '"';
+            } else {
+                $hrefAttrs = ' href="' . admin_url('clients/client/' . $order->rel_id) . '" data-toggle="tooltip" data-title="' . _l('client') . '"';
+            }
+            $orderTo = '<a' . $hrefAttrs . '>' . $orderTo . '</a>';
+        }
+
+        if ($for == 'html' || $for == 'admin') {
+            $phone = '<a href="tel:' . $order->phone . '">' . $order->phone . '</a>';
+            $email = '<a href="mailto:' . $order->email . '">' . $order->email . '</a>';
+        }
+
+        $format = _info_format_replace('company_name', $orderTo, $format);
+        $format = _info_format_replace('street', $order->billing_street, $format);
+        $format = _info_format_replace('city', $order->billing_city, $format);
+        $format = _info_format_replace('state', $order->billing_state, $format);
+
+        $format = _info_format_replace('country_code', $countryCode, $format);
+        $format = _info_format_replace('country_name', $countryName, $format);
+
+        $format = _info_format_replace('zip_code', $order->billing_zip, $format);
+        $format = _info_format_replace('phone', $phone, $format);
+        $format = _info_format_replace('email', $email, $format);
+
+        $whereCF = [];
+        if (is_custom_fields_for_customers_portal()) {
+            $whereCF['show_on_client_portal'] = 1;
+        }
+
+        // If no custom fields found replace all custom fields merge fields to empty
+        $format = _maybe_remove_first_and_last_br_tag($format);
+
+        // Remove multiple white spaces
+        $format = preg_replace('/\s+/', ' ', $format);
+        $format = trim($format);
+
+        return hooks()->apply_filters('order_info_text', $format, ['order' => $order, 'for' => $for]);
+    }
 }
